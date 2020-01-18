@@ -4,6 +4,8 @@ Created on Fri Jan 17 16:20:40 2020
 
 @author: sunge
 """
+import math
+
 from sympy import Symbol
 from sympy.solvers import solve
 
@@ -35,4 +37,8 @@ class Nozzle:
         sol = solve(p0/p - ((1+(gamma-1)* mech_num**2)/2) ** (gamma/(gamma-1)),m)
         print("Pressure:",sol)
         return sol
-        
+
+    def get_thrust_from_nozzle(self, m_dot, r_cnst, temp_not, p_e, p_o, p_amb, a_e, gamma=1.4):
+        thrust_from_nozzle = m_dot * math.sqrt(((2 * gamma) / (gamma - 1)) * r_cnst * temp_not * (1 - (p_e / p_o) ** ((gamma - 1) / gamma))) + (p_e - p_amb) * a_e
+        return thrust_from_nozzle
+
