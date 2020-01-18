@@ -7,7 +7,7 @@ Created on Fri Jan 17 16:20:40 2020
 from sympy import Symbol
 from sympy.solvers import solve
 
-class Nozzel:
+class Nozzle:
     throat_area = 1
     outlet_area = 2
     mass = 3
