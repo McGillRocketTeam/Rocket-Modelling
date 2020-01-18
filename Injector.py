@@ -16,8 +16,7 @@ class Injector:
     def __init__(self,a,b,c):
         self.area = a
         self.length = b
-        self.mass = c
-    def kappa(self, P_tank,P_cc,P_vap ):
+        self.mass = cgit
 
     def design(self, P_tank,rho_tank, rho_cc,h_tank,h_cc, P_cc,P_vap,C_d,m_dot):
         kappa = sqrt((d_P)/(P_vap-P_cc))
