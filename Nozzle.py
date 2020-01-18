@@ -19,4 +19,15 @@ class Nozzle:
     def flow_area_realtion(self, a, a_star, gamma):
         m = Symbol('M')
         sol = solve((a / a_star) - (1 / m) * ((2 / (gamma + 1)) * (1 + (gamma - 1) / 2) * m ** 2) ** ((gamma + 1) / (2 * (gamma - 1))), m)
-        print(sol)
+        print("Flow area realton:",sol)
+        return sol
+    
+    def mass_flow_rate(self, pressure, temperature,throat_area, mech_num = 1,
+                       gamma = 1.4, R_prime = 8.314, M_prime = 30):
+        m = Symbol('m')
+        sol = solve(m - throat_area * (pressure/temperature) * (gamma/(R_prime/M_prime))**(0.5)
+        * (mech_num/(1+((gamma-1)*mech_num**2)/2) ** ((gamma+1)/(2*(gamma-1)))))))))))
+        print("Mass flow rate:",sol)
+        return sol
+        
+        
