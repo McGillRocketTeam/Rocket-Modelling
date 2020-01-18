@@ -26,13 +26,13 @@ class Nozzle:
                        gamma = 1.4, R_prime = 8.314, M_prime = 30):
         m = Symbol('m')
         sol = solve(m - throat_area * (pressure/temperature) * (gamma/(R_prime/M_prime))**(0.5)
-        * (mech_num/(1+((gamma-1)*mech_num**2)/2) ** ((gamma+1)/(2*(gamma-1)))))))))))
+        * (mech_num/(1+((gamma-1)*mech_num**2)/2) ** ((gamma+1)/(2*(gamma-1)))))
         print("Mass flow rate:",sol)
         return sol
     
     def pressure_condition(p0,mech_num, gamma = 1.4):
         p = Symbol('p')
-        sol = solve(p0/p - ((1+(gamma-1)* mech_num**2)/2) ** (gamma/(gamma-1)))
+        sol = solve(p0/p - ((1+(gamma-1)* mech_num**2)/2) ** (gamma/(gamma-1)),m)
         print("Pressure:",sol)
         return sol
         
