@@ -5,6 +5,7 @@ Created on Fri Jan 17 16:13:36 2020
 @author: sunge
 """
 from math import sqrt
+import CoolProp as cp
 
 class Injector:
     area = 1
@@ -16,21 +17,21 @@ class Injector:
     def __init__(self,a,b,c):
         self.area = a
         self.length = b
-        self.mass = cgit
+        self.mass = c
 
     def design(self, P_tank,rho_tank, rho_cc,h_tank,h_cc, P_cc,P_vap,C_d,m_dot):
-        kappa = sqrt((d_P)/(P_vap-P_cc))
         d_P = P_tank-P_cc
         d_h = h_tank-h_cc
+        kappa = sqrt((d_P) / (P_vap - P_cc))
         m_inc_coef = (kappa/(1+kappa))*sqrt(2*rho_tank*d_P)
-        m_hem_coef = (1/(1+kappa))sqrt(2*rho_cc*d_h)
+        m_hem_coef = (1/(1+kappa))*sqrt(2*rho_cc*d_h)
         area = sqrt(m_dot/((C_d**2)*(m_inc_coef + m_hem_coef))
         return  area
 
     def converge (self, P_tank,rho_tank, rho_cc,h_tank,h_cc, P_cc,P_vap,C_d,):
-        kappa = sqrt((d_P) / (P_vap - P_cc))
         d_P = P_tank - P_cc
         d_h = h_tank - h_cc
+        kappa = sqrt(d_P/ (P_vap - P_cc))
         m_inc_coef = (kappa / (1 + kappa)) * C_d* self.area * sqrt(2 * rho_tank * d_P)
         m_hem_coef = (1/(1+kappa))*C_d*self.area*sqrt(2*rho_cc*d_h)
         m_dot = C_d*self.area*sqrt(m_inc_coef+m_hem_coef)

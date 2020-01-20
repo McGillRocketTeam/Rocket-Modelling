@@ -4,8 +4,8 @@ Created on Fri Jan 17 16:20:40 2020
 
 @author: sunge
 """
-
-class Nozzel:
+import CoolProp as cp
+class Nozzle:
     throat_area = 1
     outlet_area = 2
     mass = 3
@@ -13,3 +13,4 @@ class Nozzel:
         self.throat_area = a
         self.outlet_area = b
         self.mass = c
+    def
