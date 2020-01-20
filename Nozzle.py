@@ -5,7 +5,6 @@ Created on Fri Jan 17 16:20:40 2020
 @author: sunge
 """
 import CoolProp as cp
-=======
 import math
 
 from sympy import Symbol
