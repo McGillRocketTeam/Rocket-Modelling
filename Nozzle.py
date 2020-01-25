@@ -9,20 +9,32 @@ import math
 
 from sympy import Symbol
 from sympy.solvers import solve
+"""
+Determines the nozzle outlet area or/and thrust output based on input variables
+#
+Inputs
+gamma: heat capacity ratio (Cp/Cv) or (Cv + R / Cv)
+throat_area: throat area
+M_prime = throat mach number (assume sonic)
+R_prime = universal gas constant 
+mach_num = outlet mach number
+
+"""
 
 
-
-    def nozzle_area_ratio(self, a, a_star, gamma):
+    def nozzle_area_ratio(self, outlet_area, throat_area, gamma):
         m = Symbol('M')
-        sol = solve((a / a_star) - (1 / m) * ((2 / (gamma + 1)) * (1 + (gamma - 1) / 2) * m ** 2) ** ((gamma + 1) / (2 * (gamma - 1))), m)
+        sol = solve((outlet_area / throat_area) - (1 / m) * ((2 / (gamma + 1)) * (1 + (gamma - 1) / 2) * m ** 2) ** ((gamma + 1) / (2 * (gamma - 1))), m)
         print("Nozzle area ratio:",sol)
         return sol
     
-    def mass_flow_rate(self, pressure, temperature,throat_area, mach_num = 1,
-                       gamma = 1.4, R_prime = 8.314, M_prime = 30):
+    def mass_flow_rate(self, pressure, temperature, throat_area, M_prime = 1, gamma = 1.4, R_prime = 8.314):
+        # find the mass flow rate of nozzle (assuming isentropic flow)
+        # input = inlet pressure, inlet area
+        # maximum mass flow rate obtained when inlet Mach num = 1
         m = Symbol('m')
-        sol = solve(m - throat_area * (pressure/temperature) * (gamma/(R_prime/M_prime))**(0.5)
-        * (mach_num/(1+((gamma-1)*mach_num**2)/2) ** ((gamma+1)/(2*(gamma-1)))))
+        sol = solve(m - throat_area * (pressure/temperature) * (gamma / (R_prime / M_prime)) ** (0.5)
+                    * (M_prime / (1 + ((gamma - 1) * M_prime ** 2) / 2) ** ((gamma + 1) / (2 * (gamma - 1)))))
         print("Mass flow rate:",sol)
         return sol
     
