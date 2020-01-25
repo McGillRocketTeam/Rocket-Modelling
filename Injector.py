@@ -20,6 +20,21 @@ class Injector:
         self.length = L
         self.mass = M
 
+    """
+    Determines the injection area based on input variables
+    #
+    Takes Input:
+    T_tank: temperature of tank
+    rho_tank: density of nitrous liquid vapour mixture
+    T_cc: temperature of the combustion chamber
+    rho_cc: density of propellent mixture in combustion chamber
+    P_vap: vapour pressure of nitrous
+    C_d: coefficient of
+    m_dot: mass flow rate
+    #
+    Return:
+    area: injection area: area of the little holes which inject fuel
+    """
     def design (self,T_tank, rho_tank,  T_cc, rho_cc, P_vap, C_d, m_dot):
         # Find missing properties from CoolProp
         P_tank = PropSI('P', 'T', T_tank, 'D', rho_tank, 'N2O' )
@@ -40,7 +55,20 @@ class Injector:
         area = sqrt(m_dot/((C_d**2)*(m_inc_coef + m_hem_coef)))
         return area
 
-
+    """
+    determine the mass flow rate through the injector based on input properties
+    #
+    Takes Input:
+    T_tank: temperature of tank
+    rho_tank: density of nitrous liquid vapour mixture
+    T_cc: temperature of the combustion chamber
+    rho_cc: density of propellent mixture in combustion chamber
+    P_vap: vapour pressure of nitrous
+    C_d: coefficient of
+    #
+    Return:
+    m_dot: mass flow rate through the injector
+    """
     def converge (self, T_tank, rho_tank,  T_cc, rho_cc,  P_vap, C_d):
         # Find missing properties from CoolProp
         P_tank = PropSI('P', 'T', T_tank, 'D', rho_tank, 'N2O' )
