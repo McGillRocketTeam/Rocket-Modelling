@@ -86,7 +86,7 @@ class Nozzle:
 
     def get_exit_pressure(self, p0,mach_num, gamma = 1.4):
         p = Symbol('p')
-        sol = solve(p0/p - ((1+(gamma-1)* mach_num**2)/2) ** (gamma/(gamma-1)),m)
+        sol = solve(p0/p - ((1+(gamma-1)* mach_num**2)/2) ** (gamma/(gamma-1)), p)
         print("Exit Pressure:",sol)
         return sol
 
@@ -94,7 +94,17 @@ class Nozzle:
     get_thrust_from_nozzle: determines the thrust output from nozzle based on parameters obtained above
     #
     Takes inputs:
-    m_dot =
+    m_dot: mass flow rate 
+    r_const: gas constant
+    temp_not: combustion chamber temperature
+    p_e: exit pressure
+    p_o: combustion chamber pressure
+    p_amb: ambient pressure 
+    a_e: outlet area
+    gamma: heat capacity ratio (Cp/Cv), 1.4 for diatomic gas
+    #
+    Returns:
+    thrust: thrust output
     """
 
     def get_thrust_from_nozzle(self, m_dot, r_cnst, temp_not, p_e, p_o, p_amb, a_e, gamma=1.4):
@@ -117,8 +127,8 @@ class Nozzle:
         mass_flow_rate = self.get_mass_flow_rate(pressure, temperature, throat_area)
         mach_num = self.get_outlet_mach(outlet_area,throat_area)
         exit_pressure = self.get_exit_pressure(pressure, mach_num)
-        R = 8.314
-        P_amb = 101324 #Pa
+        R = 8.314       # it should not be however I do not have the value at this point
+        P_amb = 101324  # Pa
         thrust = self.get_thrust_from_nozzle(mass_flow_rate,R,temperature,exit_pressure,pressure,P_amb,outlet_area)
         print("Thrust (N):", thrust)
         return thrust
