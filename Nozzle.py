@@ -11,124 +11,115 @@ from sympy import Symbol
 from sympy.solvers import solve
 
 class Nozzle:
-    throat_area = 1
-    throat_diameter = 1
-    pressure = 1
-    temperature = 1
-    mass_flow_rate = 1
+    A_throat = 1
+    P_cc = 1
+    T_cc = 1
+    m_dot = 1
 
-    def __init__(self, a, d, p, T):
-        self.throat_area = a
-        self.throat_diameter = d
-        self.pressure = p
-        self.temperature = T
+    def __init__(self, a, p, T):
+        self.A_throat = a
+        self.P_cc = p
+        self.T_cc = T
+
     """
     4 methods below are based on Prof. Andrew Higgins' Fluids 2 notes
     """
-
-
-
-
 
     """
     get_outlet_mach: determines the outlet mach number based on the area expansion ratio
     #
     Takes inputs:
-    outlet_area: outlet area
-    throat_area: throat area
+    A_exit: exit area [m^2]
+    A_throat: throat area [m^2]
     gamma: heat capacity ratio (Cp/Cv), 1.4 for diatomic gas
     #
     Returns:
     outlet mach number
     """
 
-    def get_outlet_mach(self, outlet_area, throat_area, gamma = 1.4):
+    def get_outlet_mach(self, A_exit, A_throat, gamma = 1.4):
         m = Symbol('M')
-        sol = solve((outlet_area / throat_area) - (1 / m) * ((2 / (gamma + 1)) * (1 + (gamma - 1) / 2) * m ** 2) ** ((gamma + 1) / (2 * (gamma - 1))), m)
-        print("Outlet mach number:",sol)
+        sol = solve((A_exit / A_throat) - (1 / m) * ((2 / (gamma + 1)) * (1 + (gamma - 1) / 2) * m ** 2) ** ((gamma + 1) / (2 * (gamma - 1))), m)
         return sol
 
     """
-    get_mass_flow_rate: determines the mass flow rate based on combustion chamber pressure and temperature as well as
+    get_mass_flow_rate: determines the mass flow rate based on combustion chamber P_cc and T_cc as well as
     throat area assuming sonic condition
     #
     Takes inputs:
-    pressure: combustion chamber pressure
-    temperature: combustion chamber temperature
-    throat_area: throat area
+    P_cc: combustion chamber pressure [Pa]
+    T_cc: combustion chamber temperature [Pa]
+    A_throat: throat area [m^2]
     M_prime: throat mach number, will always be 1 as we assume sonic condition
     gamma: heat capacity ratio (Cp/Cv), 1.4 for diatomic gas
-    R_prime = gas constant
+    R = gas constant of N2O / Paraffin mixture at design O/F ratio [J/kgK]
     #
     Returns:
-    mass_flow_rate: mass flow rate
+    m_dot: mass flow rate [kg/s]
     #
     """
 
-    def get_mass_flow_rate(self, pressure, temperature, throat_area, M_prime = 1, gamma=1.4, R_prime = 8.314):
+    def get_mass_flow_rate(self, P_cc, T_cc, A_throat, R = 309.0878296654275, M_prime = 1, gamma=1.4):
         m = Symbol('m')
-        sol = solve(m - throat_area * (pressure/temperature) * (gamma / (R_prime / M_prime)) ** (0.5)
-                    * (M_prime / (1 + ((gamma - 1) * M_prime ** 2) / 2) ** ((gamma + 1) / (2 * (gamma - 1)))))
-        print("Mass flow rate:",sol)
+        sol = solve(m - A_throat * (P_cc / T_cc) * (gamma / (R / M_prime)) ** 0.5* (M_prime / (1 + ((gamma - 1) * M_prime ** 2) / 2) ** ((gamma + 1) / (2 * (gamma - 1)))))
         return sol
 
     """
-    get_exit_pressure: determines the outlet pressure based on stagnation conditions (combustion chamber)
+    get_exit_pressure: determines the outlet P_cc based on stagnation conditions (combustion chamber)
     #
     Takes inputs:
-    p0: combustion chamber pressure (stagnation pressure)
-    mach_num: outlet mach number
+    P_cc: combustion chamber pressure (stagnation pressure) [Pa]
+    M: outlet mach number
     gamma: heat capacity ratio (Cp/Cv), 1.4 for diatomic gas
     #
     Returns: 
-    p = outlet pressure
+    P_exit: exit pressure [Pa]
     """
 
-    def get_exit_pressure(self, p0,mach_num, gamma = 1.4):
+    def get_exit_pressure(self, P_cc, M, gamma = 1.4):
         p = Symbol('p')
-        sol = solve(p0/p - ((1+(gamma-1)* mach_num**2)/2) ** (gamma/(gamma-1)), p)
-        print("Exit Pressure:",sol)
+        sol = solve(P_cc / p - ((1 + (gamma - 1) * M ** 2) / 2) ** (gamma / (gamma - 1)), p)
         return sol
 
     """
     get_thrust_from_nozzle: determines the thrust output from nozzle based on parameters obtained above
     #
     Takes inputs:
-    m_dot: mass flow rate 
-    r_const: gas constant
-    temp_not: combustion chamber temperature
-    p_e: exit pressure
-    p_o: combustion chamber pressure
-    p_amb: ambient pressure 
-    a_e: outlet area
+    m_dot: mass flow rate [kg/s]
+    T_cc: combustion chamber temperature [K]
+    P_exit: exit pressure [Pa]
+    P_cc: combustion chamber temperature [Pa]
+    P_amb: ambient pressure [Pa]
+    A_exit: exit area [m^2]
+    R = gas constant of N2O / Paraffin mixture at design O/F ratio [J/kgK]
     gamma: heat capacity ratio (Cp/Cv), 1.4 for diatomic gas
     #
     Returns:
-    thrust: thrust output
+    thrust: thrust output [N]
     """
 
-    def get_thrust_from_nozzle(self, m_dot, r_cnst, temp_not, p_e, p_o, p_amb, a_e, gamma=1.4):
-        thrust_from_nozzle = m_dot * math.sqrt(((2 * gamma) / (gamma - 1)) * r_cnst * temp_not * (1 - (p_e / p_o) ** ((gamma - 1) / gamma))) + (p_e - p_amb) * a_e
+    def get_thrust_from_nozzle(self, m_dot, T_cc, P_exit, P_cc, P_amb, A_exit, R = 309.0878296654275, gamma=1.4):
+        thrust_from_nozzle = m_dot * math.sqrt(((2 * gamma) / (gamma - 1)) * R * T_cc * (1 - (P_exit / P_cc) ** ((gamma - 1) / gamma))) + (P_exit - P_amb) * A_exit
         return thrust_from_nozzle
 
     """
     Determines the thrust output based on following input properties:
     #
     Takes inputs:
-    throat_area: throat area
-    outlet_area: outlet area
-    pressure: combustion chamber pressure (Pstag)
-    temperature: combustion chamber temperature (Tstag)
+    A_throat: throat area [m^2]
+    A_exit: outlet area [m^2]
+    P_cc: combustion chamber pressure (Pstag) [Pa]
+    T_cc: combustion chamber temperature (Tstag) [Pa]
+    P_amb: ambient pressure [Pa]
     #
     Return:
-    thrust: thrust output of nozzle
+    thrust: thrust output of nozzle [N]
     """
-    def converge(self, throat_area, outlet_area, pressure, temperature,):
-        mass_flow_rate = self.get_mass_flow_rate(pressure, temperature, throat_area)
-        mach_num = self.get_outlet_mach(outlet_area,throat_area)
+
+    def converge(self, A_throat, outlet_area, pressure, temperature, P_amb):
+        m_dot = self.get_mass_flow_rate(pressure, temperature, A_throat)
+        mach_num = self.get_outlet_mach(outlet_area, A_throat)
         exit_pressure = self.get_exit_pressure(pressure, mach_num)
-        R = 8.314       # it should not be however I do not have the value at this point
-        P_amb = 101324  # Pa
-        thrust = self.get_thrust_from_nozzle(mass_flow_rate,R,temperature,exit_pressure,pressure,P_amb,outlet_area)
-        print("Thrust (N):", thrust)
+        thrust = self.get_thrust_from_nozzle(m_dot, temperature, exit_pressure, pressure, P_amb, outlet_area)
+        print("Thrust [N]:", thrust)
         return thrust
