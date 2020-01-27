@@ -6,7 +6,6 @@ Created on Fri Jan 17 16:13:36 2020
 """
 from math import sqrt
 from CoolProp.CoolProp import PropSI
-
 class Injector:
     area = 1
     length = 1
@@ -38,6 +37,7 @@ class Injector:
         m_hem_coef = (1/(1+kappa))*sqrt(2*rho_cc*d_h)
 
         area = sqrt(m_dot/((C_d**2)*(m_inc_coef + m_hem_coef)))
+        
         return area
 
 
