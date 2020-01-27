@@ -1,0 +1,14 @@
+Block Comments:
+"""
+Description of what the method/class does
+#
+Input to method/class:
+variable_name: what variable is used for
+variable_name2: what 2nd variable is used for
+#
+Return:
+return_variable_name: what its used for
+return_var_2: what variable is used for
+"""
+
+see injector.py for an example
