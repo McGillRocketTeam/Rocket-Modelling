@@ -10,6 +10,7 @@ import math
 from sympy import Symbol
 from sympy.solvers import solve
 
+
 class Nozzle:
     A_throat = 1
     P_cc = 1
