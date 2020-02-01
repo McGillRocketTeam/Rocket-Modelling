@@ -40,8 +40,9 @@ class Nozzle:
 
     def get_outlet_mach(self, A_exit, A_throat, gamma = 1.4):
         m = Symbol('M')
-        sol = solve((A_exit / A_throat) - (1 / m) * ((2 / (gamma + 1)) * (1 + (gamma - 1) / 2) * m ** 2) ** ((gamma + 1) / (2 * (gamma - 1))), m)
-        return sol
+        sol = solve((A_exit / A_throat) - (1 / m) * ((2 / (gamma + 1)) * ((1 + (gamma - 1) / 2) * m ** 2)) ** ((gamma + 1) / (2 * (gamma - 1))), m)
+        M_out = float(sol[0])
+        return M_out
 
     """
     get_mass_flow_rate: determines the mass flow rate based on combustion chamber P_cc and T_cc as well as
@@ -63,8 +64,8 @@ class Nozzle:
     def get_mass_flow_rate(self, P_cc, T_cc, A_throat, R = 309.0878296654275, M_prime = 1, gamma=1.4):
         m = Symbol('m')
         sol = solve(m - A_throat * (P_cc / T_cc) * (gamma / (R / M_prime)) ** 0.5* (M_prime / (1 + ((gamma - 1) * M_prime ** 2) / 2) ** ((gamma + 1) / (2 * (gamma - 1)))))
-        return sol
-
+        mdot = float(sol[0])
+        return mdot
     """
     get_exit_pressure: determines the outlet P_cc based on stagnation conditions (combustion chamber)
     #
@@ -79,8 +80,9 @@ class Nozzle:
 
     def get_exit_pressure(self, P_cc, M, gamma = 1.4):
         p = Symbol('p')
-        sol = solve(P_cc / p - ((1 + (gamma - 1) * M ** 2) / 2) ** (gamma / (gamma - 1)), p)
-        return sol
+        sol = solve(P_cc / p - (1 + ((gamma - 1) * M ** 2) / 2) ** (gamma / (gamma - 1)), p)
+        P_exit = float(sol[0])
+        return P_exit
 
     """
     get_thrust_from_nozzle: determines the thrust output from nozzle based on parameters obtained above
@@ -100,7 +102,7 @@ class Nozzle:
     """
 
     def get_thrust_from_nozzle(self, m_dot, T_cc, P_exit, P_cc, P_amb, A_exit, R = 309.0878296654275, gamma=1.4):
-        thrust_from_nozzle = m_dot * math.sqrt(((2 * gamma) / (gamma - 1)) * R * T_cc * (1 - (P_exit / P_cc) ** ((gamma - 1) / gamma))) + (P_exit - P_amb) * A_exit
+        thrust_from_nozzle = m_dot *(((2 * gamma) / (gamma - 1)) * R * T_cc * (1 - (P_exit / P_cc) ** ((gamma - 1) / gamma)))**0.5 + (P_exit - P_amb) * A_exit
         return thrust_from_nozzle
 
     """
@@ -117,10 +119,27 @@ class Nozzle:
     thrust: thrust output of nozzle [N]
     """
 
-    def converge(self, A_throat, outlet_area, pressure, temperature, P_amb):
-        m_dot = self.get_mass_flow_rate(pressure, temperature, A_throat)
-        mach_num = self.get_outlet_mach(outlet_area, A_throat)
-        exit_pressure = self.get_exit_pressure(pressure, mach_num)
-        thrust = self.get_thrust_from_nozzle(m_dot, temperature, exit_pressure, pressure, P_amb, outlet_area)
+    def converge(self, A_throat, A_exit, P_cc, T_cc, P_amb):
+        m_dot = self.get_mass_flow_rate(P_cc, T_cc, A_throat)
+        print(m_dot)
+        mach_num = self.get_outlet_mach(A_exit, A_throat)
+        print(mach_num)
+        exit_pressure = self.get_exit_pressure(P_cc, mach_num)
+        print(exit_pressure)
+        thrust = self.get_thrust_from_nozzle(m_dot, T_cc, exit_pressure, P_cc, P_amb, A_exit)
         print("Thrust [N]:", thrust)
         return thrust
+
+
+"""
+TEST SCRIPT FROM BELOW
+
+nozzleTest = Nozzle(2,300000,300)
+testConverge = nozzleTest.converge(nozzleTest.A_throat,4,nozzleTest.P_cc, nozzleTest.T_cc,101325)
+
+OUTPUT
+77.894953578635
+1.148698354997035
+132167.55424695372
+Thrust [N]: 152046.59462488594
+"""
