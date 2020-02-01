@@ -5,7 +5,8 @@ Created on Fri Jan 17 16:06:20 2020
 @author: sunge
 """
 
-#import CoolProp as cp
+from CoolProp.CoolProp import PropsSI
+import Numpy as np
 
 class Tank:
     total_volume = 1
@@ -15,24 +16,24 @@ class Tank:
     outlet_diameter = 1
 
     def __init__(self, init):
-        self.total_volume = init[0]
-        self.tank_dry_mass = init[1]
-    '''
-        self.total_volume = a
-        self.oxidizer_mass = b
-        self.initial_temp = c
-        self.tank__dry_mass = d
-        self.outlet_diameter = e
-    '''
+        self.V_tot = a
+        self.m_ox = b
+        self.v_specific = self.V_tot/self.m_ox
+
+        self.tank_id = c
+        self.T_tank = d  # Initial temperature
+        self.h = PropsSI("H", "T", self.T_tank, "D", 1/self.v_specific, 'N2O')
 
 # example usage of PropsSI: PropsSI("T", "P", 101325, "Q", 0, "Water")
-#finds temperature of water at pressure 101325 Pa and Quality 0 (which is equivalent to boiling temp)
+# finds temperature of water at pressure 101325 Pa and Quality 0 (which is equivalent to boiling temp)
 
     def converge(self):
-        x = 10
+        pass
 
-    def update(self, dt, oxidiser_mass_flow_rate):
-        #used to move timestep forward
-        self.oxidizer_mass -= self.mass_flow_rate * dt
-
-
+    def update(self, dt, m_dot_ox):
+        # used to move timestep forward
+        self.m_ox -= m_dot_ox * dt
+        self.v_specific = self.V_tot / self.m_ox
+        rho = 1 / self.v_specific
+        T = PropsSI("T", "H", self.T_tank, "D", 1 / self.v_specific, 'N2O')
+        return T, rho
