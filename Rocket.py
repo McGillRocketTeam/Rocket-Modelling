@@ -38,7 +38,7 @@ class Rocket:
     def update(self, dt):
         self.T_tank, self.rho_tank = self.Tank.update(dt, self.m_dot_ox) # change m_ox
         self.Injector.update(dt) # should do NOTHING
-        self.CombustionChamber.update(dt) # change r_fuel
+        self.CombustionChamber.update(dt, self.m_dot_fuel) # change m_fuel & r_fuel
         self.Nozzle.update(dt) # should do NOTHING
 
     def converge(self):
