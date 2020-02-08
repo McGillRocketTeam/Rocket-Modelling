@@ -2,7 +2,7 @@
 """
 Created on Fri Jan 17 16:20:40 2020
 
-@author: sunge
+@author: sunge, crw
 """
 import CoolProp as cp
 import math
@@ -12,6 +12,10 @@ from sympy.solvers import solve
 
 
 class Nozzle:
+
+    DEBUG_VERBOSITY = 0
+
+
     A_throat = 1
     P_cc = 1
     T_post_comb = 1
@@ -71,6 +75,10 @@ class Nozzle:
         gamma = self.gamma
         sol = solve(m - A_throat * (P_cc / T_post_comb) * (gamma / (R / M_prime)) ** 0.5* (M_prime / (1 + ((gamma - 1) * M_prime ** 2) / 2) ** ((gamma + 1) / (2 * (gamma - 1)))))
         mdot = float(sol[0])
+
+        if self.DEBUG_VERBOSITY > 0:
+            print("[Nozzle.get_mass_flow_rate] mdot = ", mdot)
+
         return mdot
     """
     get_exit_pressure: determines the outlet P_cc based on stagnation conditions (combustion chamber)
@@ -88,6 +96,10 @@ class Nozzle:
         gamma = self.gamma
         sol = solve(P_cc / p - (1 + ((gamma - 1) * M ** 2) / 2) ** (gamma / (gamma - 1)), p)
         P_exit = float(sol[0])
+
+        if self.DEBUG_VERBOSITY > 1:
+            print("[Nozzle.get_exit_pressure] p_exit = ", P_exit)
+
         return P_exit
 
     """
@@ -110,6 +122,10 @@ class Nozzle:
         A_exit = self.A_exit
         thrust_from_nozzle = m_dot *(((2 * gamma) / (gamma - 1)) * R * T_post_comb * (1 - (P_exit / P_cc) ** ((gamma - 1) / gamma)))**0.5 + (P_exit - P_amb) * A_exit
         self.thrust = thrust_from_nozzle
+
+        if self.DEBUG_VERBOSITY > 0:
+            print("***DEBUG*** [Nozzle.get_thrust_from_nozzle] Thrust = ", thrust_from_nozzle)
+
         return thrust_from_nozzle
 
     """
@@ -127,7 +143,7 @@ class Nozzle:
     """
 
     def converge(self, m_dot_actual, T_post_comb, P_cc):
-        m_dot_choke = self.get_mass_flow_rate(P_cc,T_post_comb)
+        m_dot_choke = self.get_mass_flow_rate(P_cc, T_post_comb)
         return m_dot_choke
 
     def update(self, dt):

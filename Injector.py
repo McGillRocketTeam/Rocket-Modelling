@@ -2,13 +2,16 @@
 """
 Created on Fri Jan 17 16:13:36 2020
 
-@author: sunge
+@author: sunge, crw
 """
 from math import sqrt
 from CoolProp.CoolProp import PropsSI
 
 
 class Injector:
+
+    DEBUG_VERBOSITY = 2
+
     area = 1
     length = 1
     mass = 1
@@ -90,6 +93,10 @@ class Injector:
         m_hem_coef = (1/(1+kappa))*self.C_d*self.area*sqrt(2*rho_cc*d_h)
 
         m_dot = self.C_d*self.area*sqrt(m_inc_coef + m_hem_coef)
+
+        if self.DEBUG_VERBOSITY > 0:
+            print("***DEBUG*** [Injector.converge] m_dot = ", m_dot )
+
         return m_dot
 
     def update(self, dt):

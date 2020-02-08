@@ -12,10 +12,13 @@ The model here is based on the 1D model of regression, which assumes:
 
 See Cantwell's chapter on hybrid rocket engines for more info
 
-@author: jotisl, sunge
+@author: jotisl, sunge, crw
 """
 import numpy as np
 class CombustionChamber:
+
+    DEBUG_VERBOSITY = 0
+
     outer_radius = 1
     inner_radius = 1
     length = 1
@@ -32,7 +35,7 @@ class CombustionChamber:
         self.inner_radius = .079
         self.grain_length = 0.762
         self.pressure = 2.76e6
-        self.temperature = 50
+        self.temperature = 3000
         self.rho_fuel = 900
         self.m_fuel = self.rho_fuel*self.grain_length*np.pi*(self.outer_radius**2 - self.inner_radius**2)
 
@@ -45,7 +48,7 @@ class CombustionChamber:
         self.m_fuel -= m_lost
         delta_vol = m_lost*self.rho_fuel
         delta_r = delta_vol / (4*np.pi*self.inner_radius**2)
-        self.inner_radius += delta_r #here the regression number is positive in the r-direction
+        self.inner_radius += delta_r # here the regression number is positive in the r-direction
 
     def converge(self, m_dot_ox, P_cc):
         r_dot_fuel = self.n_ballistic*(m_dot_ox/(np.pi*self.inner_radius**2))**self.n_ballistic
@@ -55,8 +58,5 @@ class CombustionChamber:
         OF_ratio_f = (m_dot_ox**(1-self.n_ballistic)*(2*self.inner_radius)**(2*self.n_ballistic-1))/(4**self.n_ballistic*np.pi**(1-self.n_ballistic)*self.n_ballistic*self.rho_fuel*self.grain_length)
         
         self.temperature = self.chamberTemp(OF_ratio, P_cc)
-        
-        
+
         return m_dot_fuel, self.temperature
-        
-        

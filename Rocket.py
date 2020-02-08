@@ -12,6 +12,8 @@ import numpy as np
 
 class Rocket:
 
+    DEBUG_VERBOSITY = 2
+
     def __init__(self):
         # The order of initialisation here reflects the hierarchy we are using
         # For now, all properties are hard-coded, rather than inputs
@@ -38,10 +40,15 @@ class Rocket:
         thrust_curve = []
         while self.Tank.oxidizer_mass > 0 and self.CombustionChamber.inner_radius < self.CombustionChamber.outer_radius \
                 and loop_ctr < max_timesteps:
-            print("t = ", dt*loop_ctr)
-            self.update(dt)
+
+            if self.DEBUG_VERBOSITY > 0:
+                print("t = ", dt*loop_ctr)
+
             self.converge()
+            self.update(dt)
+
             loop_ctr += 1
+
             thrust_curve.append(self.Nozzle.thrust)
 
         if self.Tank.oxidizer_mass < 1e-5:
@@ -61,15 +68,26 @@ class Rocket:
 
     def converge(self):
         epsilon = 1000 # Percent change between steps
-        epsilon_min = 1e-3
+        epsilon_min = 1e-6
+        converge_ctr = 1
         while epsilon < epsilon_min:
+
             self.T_tank, self.rho_tank = self.Tank.converge()
+
             self.m_dot_ox = self.Injector.converge(self.T_tank, self.rho_tank, self.T_cc, self.rho_cc)
+
             self.m_dot_fuel, self.T_post_comb = self.CombustionChamber.converge(self.m_dot_ox, self.P_cc)
+
             m_dot_choke = self.Nozzle.get_mass_flow_rate(self.P_cc, self.T_post_comb)
             m_dot_actual = self.m_dot_ox + self.m_dot_fuel
+
             self.P_cc = self.Nozzle.converge(m_dot_actual, self.T_post_comb, self.P_cc)
+
             epsilon = abs(self.m_dot_ox + self.m_dot_fuel - m_dot_choke)
+
+            converge_ctr += 1
+        if self.DEBUG_VERBOSITY > 1:
+            print("***DEBUG*** [Rocket.converge] Steps to convergence =  ", converge_ctr)
 
 myRocket = Rocket()
 dt = 0.001
