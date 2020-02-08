@@ -17,13 +17,14 @@ class Nozzle:
     T_post_comb = 1
     m_dot = 1
 
-    def __init__(self, a, p, T):
-        self.A_throat = a
-        self.A_exit = b
-        self.P_cc = p
-        self.T_post_comb = T
+    def __init__(self):
+        self.A_throat = 0.5
+        self.A_exit = 0.1
+        #self.P_cc = p
+        #self.T_post_comb = T
         self.gamma = 1.4
         self.gas_constant = 8.314*1e-3/27.4
+        self.thrust=0
 
     """
     4 methods below are based on Prof. Andrew Higgins' Fluids 2 notes
@@ -108,6 +109,7 @@ class Nozzle:
         gamma = self.gamma
         A_exit = self.A_exit
         thrust_from_nozzle = m_dot *(((2 * gamma) / (gamma - 1)) * R * T_post_comb * (1 - (P_exit / P_cc) ** ((gamma - 1) / gamma)))**0.5 + (P_exit - P_amb) * A_exit
+        self.thrust = thrust_from_nozzle
         return thrust_from_nozzle
 
     """

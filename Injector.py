@@ -16,11 +16,11 @@ class Injector:
     mass_flow_rate = 1
     temp = 1
 
-    def __init__ (self, A, L, M):
-        self.area = A
-        self.length = L
-        self.mass = M
-        self.C_d = s
+    def __init__ (self):
+        self.area = 0.000048
+        # self.length = L
+        # self.mass = M
+        self.C_d = 0.62
 
     """
     Determines the injection area based on input variables

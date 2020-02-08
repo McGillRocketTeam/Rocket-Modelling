@@ -2,16 +2,23 @@ from Injector import Injector
 from Tank import Tank
 from CombustionChamber import CombustionChamber
 from Nozzle import Nozzle
+import matplotlib.pyplot as plt
+import numpy as np
 
+#NOTE REGARDING DEBUG VERBOSITY
+# 0 = no debug messages
+# 1 = some debug messages
+# 2 = as many debug messages as possible, report anything that is odd
 
 class Rocket:
 
-    def __init__(self, tank_init=[1, 1], injector_init=[1, 1], cc_init=[1, 1], nozzle_init=[1, 1]):
+    def __init__(self):
         # The order of initialisation here reflects the hierarchy we are using
-        self.Tank = Tank(tank_init)
-        self.Injector = Injector(injector_init)
-        self.CombustionChamber = CombustionChamber(cc_init)
-        self.Nozzle = Nozzle(nozzle_init)
+        # For now, all properties are hard-coded, rather than inputs
+        self.Tank = Tank()
+        self.Injector = Injector()
+        self.CombustionChamber = CombustionChamber()
+        self.Nozzle = Nozzle()
         self.t = 0
 
         self.T_tank = 0
@@ -25,15 +32,26 @@ class Rocket:
         self.m_dot_fuel = 0
         self.m_dot_choke = 0
 
-    def simulate(self, dt=0.001):
+    def simulate(self, dt=0.001, max_timesteps=1e6):
         # Simulate until reach zero oxidiser/fuel mass, not based on final time
         loop_ctr = 0
-        max_loops = 1e4
+        thrust_curve = []
         while self.Tank.oxidizer_mass > 0 and self.CombustionChamber.inner_radius < self.CombustionChamber.outer_radius \
-                and loop_ctr<max_loops:
+                and loop_ctr < max_timesteps:
+            print("t = ", dt*loop_ctr)
             self.update(dt)
             self.converge()
             loop_ctr += 1
+            thrust_curve.append(self.Nozzle.thrust)
+
+        if self.Tank.oxidizer_mass < 1e-5:
+            print("[Rocket.Simulate] Tank has emptied of oxidiser")
+        elif self.CombustionChamber.outer_radius - self.CombustionChamber.inner_radius < 1e-5:
+            print("[Rocket.Simulate] Fuel grain has burned away")
+        elif loop_ctr > max_timesteps:
+            print("[Rocket.Simulate: ERROR, minor] Simulator has exceeded max timesteps without emptying")
+        return thrust_curve
+
 
     def update(self, dt):
         self.T_tank, self.rho_tank = self.Tank.update(dt, self.m_dot_ox) # change m_ox
@@ -52,3 +70,10 @@ class Rocket:
             m_dot_actual = self.m_dot_ox + self.m_dot_fuel
             self.P_cc = self.Nozzle.converge(m_dot_actual, self.T_post_comb, self.P_cc)
             epsilon = abs(self.m_dot_ox + self.m_dot_fuel - m_dot_choke)
+
+myRocket = Rocket()
+dt = 0.001
+max_steps = 1e6
+thrust_curve = myRocket.simulate()
+times = np.linspace(0, endpoint=False, num=len(thrust_curve), step=dt )
+plt.plot(times, thrust_curve)

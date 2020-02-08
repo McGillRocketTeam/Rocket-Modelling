@@ -14,7 +14,7 @@ See Cantwell's chapter on hybrid rocket engines for more info
 
 @author: jotisl, sunge
 """
-import NumPy as np
+import numpy as np
 class CombustionChamber:
     outer_radius = 1
     inner_radius = 1
@@ -27,13 +27,13 @@ class CombustionChamber:
     a_ballistic = 0.0000927
     n_ballistic = 0.62
 
-    def __init__(self, a, b, c, d, e, f):
-        self.outer_radius = a
-        self.inner_radius = b
-        self.grain_length = c
-        self.pressure = d
-        self.temperature = e
-        self.rho_fuel = f
+    def __init__(self):
+        self.outer_radius = .0917
+        self.inner_radius = .079
+        self.grain_length = 0.762
+        self.pressure = 2.76e6
+        self.temperature = 50
+        self.rho_fuel = 900
         self.m_fuel = self.rho_fuel*self.grain_length*np.pi*(self.outer_radius**2 - self.inner_radius**2)
 
     def chamberTemp(self, OF_ratio, P_cc):

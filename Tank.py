@@ -6,7 +6,7 @@ Created on Fri Jan 17 16:06:20 2020
 """
 
 from CoolProp.CoolProp import PropsSI
-import Numpy as np
+import numpy as np
 
 class Tank:
     total_volume = 1
@@ -15,13 +15,13 @@ class Tank:
     tank_dry_mass = 1
     outlet_diameter = 1
 
-    def __init__(self, init):
-        self.V_tot = a
-        self.m_ox = b
+    def __init__(self):
+        self.V_tot = 0.0232
+        self.m_ox = 10
         self.v_specific = self.V_tot/self.m_ox
 
-        self.tank_id = c
-        self.T_tank = d  # Initial temperature
+        self.tank_id = .1346
+        self.T_tank = 40+273  # Initial temperature
         self.h = PropsSI("H", "T", self.T_tank, "D", 1/self.v_specific, 'N2O')
 
 # example usage of PropsSI: PropsSI("T", "P", 101325, "Q", 0, "Water")
