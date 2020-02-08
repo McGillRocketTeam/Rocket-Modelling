@@ -75,12 +75,14 @@ class Injector:
     Return:
     m_dot: mass flow rate through the injector
     """
-    def converge(self, T_tank, rho_tank,  T_cc, rho_cc):
+    def converge(self, T_tank, rho_tank,  T_cc, P_cc):
         # Find missing properties from CoolProp
         P_tank = PropsSI('P', 'T', T_tank, 'D', rho_tank, 'N2O')
         h_tank = PropsSI('H', 'T', T_tank, 'D', rho_tank, 'N2O')
 
-        P_cc = PropsSI('P', 'T', T_cc, 'D', rho_cc, 'N2O')
+        #I'm not sure about this, as the combustion chamber gases aren't pure nitrous
+        #P_cc = PropsSI('P', 'T', T_cc, 'D', rho_cc, 'N2O')
+        rho_cc = PropsSI('D', 'T', T_cc, 'P', P_cc, 'N2O')
         h_cc = PropsSI('H', 'T', T_cc, 'D', rho_cc, 'N2O')
 
         # break up parts of the equations for readability

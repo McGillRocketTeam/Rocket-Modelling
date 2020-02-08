@@ -23,7 +23,7 @@ class CombustionChamber:
     inner_radius = 1
     length = 1
     pressure = 1
-    temp = 1
+    temperature = 1
     mass_flow_rate = 1
 
     # two constants: defined in diff. file or from literature
@@ -39,7 +39,7 @@ class CombustionChamber:
         self.rho_fuel = 900
         self.m_fuel = self.rho_fuel*self.grain_length*np.pi*(self.outer_radius**2 - self.inner_radius**2)
 
-    def chamberTemp(self, OF_ratio, P_cc):
+    def chamberTemp(self, OF_ratio):
         #here, call CEA to extract combustion equilibrium stuff
         return self.temperature
 
@@ -50,13 +50,13 @@ class CombustionChamber:
         delta_r = delta_vol / (4*np.pi*self.inner_radius**2)
         self.inner_radius += delta_r # here the regression number is positive in the r-direction
 
-    def converge(self, m_dot_ox, P_cc):
+    def converge(self, m_dot_ox):
         r_dot_fuel = self.n_ballistic*(m_dot_ox/(np.pi*self.inner_radius**2))**self.n_ballistic
         m_dot_fuel = self.rho_fuel*self.grain_length*np.pi*2*self.inner_radius*r_dot_fuel
         
         OF_ratio = m_dot_ox/m_dot_fuel
         OF_ratio_f = (m_dot_ox**(1-self.n_ballistic)*(2*self.inner_radius)**(2*self.n_ballistic-1))/(4**self.n_ballistic*np.pi**(1-self.n_ballistic)*self.n_ballistic*self.rho_fuel*self.grain_length)
         
-        self.temperature = self.chamberTemp(OF_ratio, P_cc)
+        self.temperature = self.chamberTemp(OF_ratio)
 
         return m_dot_fuel, self.temperature

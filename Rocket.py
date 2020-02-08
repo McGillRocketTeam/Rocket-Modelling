@@ -23,10 +23,9 @@ class Rocket:
         self.Nozzle = Nozzle()
         self.t = 0
 
-        self.T_tank = 0
-        self.rho_tank = 0
+        #self.T_tank = 0
+        #self.rho_tank_liquid = 0
         self.T_cc = 0
-        self.rho_cc = 0
         self.T_post_comb = 0 #cp = combustion products
         self.P_cc = 0 #cp = combustion products
 
@@ -38,20 +37,26 @@ class Rocket:
         # Simulate until reach zero oxidiser/fuel mass, not based on final time
         loop_ctr = 0
         thrust_curve = []
-        while self.Tank.oxidizer_mass > 0 and self.CombustionChamber.inner_radius < self.CombustionChamber.outer_radius \
+
+        self.initiate()
+
+        while self.Tank.m_ox > 0 and self.CombustionChamber.inner_radius < self.CombustionChamber.outer_radius \
                 and loop_ctr < max_timesteps:
 
             if self.DEBUG_VERBOSITY > 0:
                 print("t = ", dt*loop_ctr)
 
-            self.converge()
+            # converge is configured to return -1 in order to end simulation
+            tmp = self.converge()
+            if tmp == -1:
+                break
             self.update(dt)
 
             loop_ctr += 1
 
             thrust_curve.append(self.Nozzle.thrust)
 
-        if self.Tank.oxidizer_mass < 1e-5:
+        if self.Tank.m_ox < 1e-5:
             print("[Rocket.Simulate] Tank has emptied of oxidiser")
         elif self.CombustionChamber.outer_radius - self.CombustionChamber.inner_radius < 1e-5:
             print("[Rocket.Simulate] Fuel grain has burned away")
@@ -59,35 +64,59 @@ class Rocket:
             print("[Rocket.Simulate: ERROR, minor] Simulator has exceeded max timesteps without emptying")
         return thrust_curve
 
+    def initiate(self):
+        # Calculate m_dot_ox when ignition occurs
+        # Eventually we could change this to simulate the startup transient
+
+        # This assumes combustion is already occurring at steady state and
+        # that m_dot_ox is determined by the choke
+        self.m_dot_ox = self.Nozzle.get_mass_flow_rate(self.CombustionChamber.pressure, self.CombustionChamber.temperature)
+
+
+        #self.T_tank = self.Tank.T_tank
+        #self.rho_tank_liquid = self.Tank.rho_liquid
+        #self.T_cc = self.CombustionChamber.temperature
+        self.T_post_comb = 0  # cp = combustion products
+        self.P_cc = 0  # cp = combustion products
+
+
 
     def update(self, dt):
-        self.T_tank, self.rho_tank = self.Tank.update(dt, self.m_dot_ox) # change m_ox
-        self.Injector.update(dt) # should do NOTHING
+        self.Tank.update(dt, self.m_dot_ox) # change m_ox
+        # Tank.update is configured to set rho = -1 in certain cases to end simulation
+        if self.Tank.rho_liquid == -1:
+            return
+        #self.Injector.update(dt) # should do NOTHING
         self.CombustionChamber.update(dt, self.m_dot_fuel) # change m_fuel & r_fuel
-        self.Nozzle.update(dt) # should do NOTHING
+        #self.Nozzle.update(dt) # should do NOTHING
 
     def converge(self):
         epsilon = 1000 # Percent change between steps
-        epsilon_min = 1e-6
-        converge_ctr = 1
-        while epsilon < epsilon_min:
+        epsilon_min = 1e-3
+        converge_ctr = 0
+        while epsilon > epsilon_min:
 
-            self.T_tank, self.rho_tank = self.Tank.converge()
+            # Does nothing
+            self.Tank.converge()
 
-            self.m_dot_ox = self.Injector.converge(self.T_tank, self.rho_tank, self.T_cc, self.rho_cc)
+            self.m_dot_ox = self.Injector.converge(self.Tank.T_tank, self.Tank.rho_liquid, \
+                                                   self.CombustionChamber.temperature, self.CombustionChamber.pressure)
 
-            self.m_dot_fuel, self.T_post_comb = self.CombustionChamber.converge(self.m_dot_ox, self.P_cc)
+            self.m_dot_fuel = self.CombustionChamber.converge(self.m_dot_ox)
 
-            m_dot_choke = self.Nozzle.get_mass_flow_rate(self.P_cc, self.T_post_comb)
+            m_dot_choke = self.Nozzle.get_mass_flow_rate(self.CombustionChamber.pressure, \
+                                                         self.CombustionChamber.temperature)
             m_dot_actual = self.m_dot_ox + self.m_dot_fuel
 
-            self.P_cc = self.Nozzle.converge(m_dot_actual, self.T_post_comb, self.P_cc)
+            self.CombustionChamber.pressure = self.Nozzle.converge( \
+                m_dot_actual, self.CombustionChamber.temperature, self.CombustionChamber.pressure)
 
             epsilon = abs(self.m_dot_ox + self.m_dot_fuel - m_dot_choke)
 
             converge_ctr += 1
         if self.DEBUG_VERBOSITY > 1:
             print("***DEBUG*** [Rocket.converge] Steps to convergence =  ", converge_ctr)
+            print("***DEBUG*** [Rocket.converge] Convergence epsilon =  ", epsilon)
 
 myRocket = Rocket()
 dt = 0.001
