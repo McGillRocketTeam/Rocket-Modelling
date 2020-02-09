@@ -86,15 +86,18 @@ class Injector:
         h_cc = PropsSI('H', 'T', T_cc, 'D', rho_cc, 'N2O')
 
         # break up parts of the equations for readability
-        d_P = P_tank - P_cc
-        d_h = h_tank - h_cc
+        delta_p = P_tank - P_cc
+        delta_h = h_tank - h_cc
 
-        kappa = sqrt(d_P / (P_tank - P_cc))
+        #kappa = sqrt(delta_p / (P_tank - P_cc))
+        #m_dot_hem = self.C_d*self.area*rho_cc*sqrt(2*(delta_h))
 
-        m_inc_coef = (kappa / (1 + kappa)) * self.C_d * self.area * sqrt(2 * rho_tank * d_P)
-        m_hem_coef = (1/(1+kappa))*self.C_d*self.area*sqrt(2*rho_cc*d_h)
+        m_dot_inc = self.C_d*self.area*sqrt(2*rho_tank*(delta_p))
 
-        m_dot = self.C_d*self.area*sqrt(m_inc_coef + m_hem_coef)
+        #m_inc_coef = (kappa / (1 + kappa)) * self.C_d * self.area * sqrt(2 * rho_tank * d_P)
+        #m_hem_coef = (1/(1+kappa))*self.C_d*self.area*sqrt(2*rho_cc*d_h)
+
+        m_dot = m_dot_inc
 
         if self.DEBUG_VERBOSITY > 0:
             print("***DEBUG*** [Injector.converge] m_dot = ", m_dot )
