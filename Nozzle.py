@@ -2,7 +2,7 @@
 """
 Created on Fri Jan 17 16:20:40 2020
 
-@author: sunge, crw
+@author: sunge, jyoo, crw
 """
 import CoolProp as cp
 import math
