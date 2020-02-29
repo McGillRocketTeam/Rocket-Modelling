@@ -26,7 +26,7 @@ class Rocket:
         #self.T_tank = 0
         #self.rho_tank_liquid = 0
         self.T_cc = 0
-        self.T_post_comb = 0 #cp = combustion products
+        #self.T_post_comb = 0 #cp = combustion products
         self.P_cc = 0 #cp = combustion products
 
         self.m_dot_ox = 0
@@ -75,9 +75,9 @@ class Rocket:
 
         #self.T_tank = self.Tank.T_tank
         #self.rho_tank_liquid = self.Tank.rho_liquid
-        #self.T_cc = self.CombustionChamber.temperature
-        self.T_post_comb = 0  # cp = combustion products
-        self.P_cc = 0  # cp = combustion products
+        self.T_cc = self.CombustionChamber.temperature
+        #self.T_post_comb = 0
+        self.P_cc = 0
 
 
 
@@ -91,6 +91,9 @@ class Rocket:
         #self.Nozzle.update(dt) # should do NOTHING
 
     def converge(self):
+        #The second MAJOR function.  After everything that depends EXPLICITLY on time
+        # has changed, call this function to "equilibrate" the various components.  This should
+        # be done after every timestep
         epsilon = 1000 # Percent change between steps
         epsilon_min = 1e-3
         converge_ctr = 0
@@ -99,24 +102,23 @@ class Rocket:
             # Does nothing
             self.Tank.converge()
 
+            # Determine oxidiser mass flow rate based on the injector model
             self.m_dot_ox = self.Injector.converge(self.Tank.T_tank, self.Tank.rho_liquid, \
                                                    self.CombustionChamber.temperature, self.CombustionChamber.pressure)
 
-            self.m_dot_fuel = self.CombustionChamber.converge(self.m_dot_ox)
+            # Determine fuel mass flow rate based on CC model
+            self.m_dot_fuel = self.CombustionChamber.converge(self.m_dot_ox, self.m_dot_fuel)
 
-            m_dot_choke = self.Nozzle.get_mass_flow_rate(self.CombustionChamber.pressure, \
-                                                         self.CombustionChamber.temperature)
-            m_dot_actual = self.m_dot_ox + self.m_dot_fuel
-
-            self.CombustionChamber.pressure = self.Nozzle.converge( \
-                m_dot_actual, self.CombustionChamber.temperature, self.CombustionChamber.pressure)
+            # Determine, based on CC conditions, the choked flow rate
+            # We require that this choked rate be equal to the total flow rate
+            m_dot_choke = self.Nozzle.converge(self.CombustionChamber.temperature, self.CombustionChamber.pressure)
 
             epsilon = abs(self.m_dot_ox + self.m_dot_fuel - m_dot_choke)
 
             converge_ctr += 1
-        if self.DEBUG_VERBOSITY > 1:
-            print("***DEBUG*** [Rocket.converge] Steps to convergence =  ", converge_ctr)
-            print("***DEBUG*** [Rocket.converge] Convergence epsilon =  ", epsilon)
+            if self.DEBUG_VERBOSITY > 1:
+                print("***DEBUG*** [Rocket.converge] Steps to convergence =  ", converge_ctr)
+                print("***DEBUG*** [Rocket.converge] Convergence epsilon =  ", epsilon)
 
 myRocket = Rocket()
 dt = 0.001

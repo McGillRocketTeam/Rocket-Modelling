@@ -10,7 +10,7 @@ from CoolProp.CoolProp import PropsSI
 
 class Injector:
 
-    DEBUG_VERBOSITY = 2
+    DEBUG_VERBOSITY = 1
 
     area = 1
     length = 1
@@ -82,6 +82,12 @@ class Injector:
 
         #I'm not sure about this, as the combustion chamber gases aren't pure nitrous
         #P_cc = PropsSI('P', 'T', T_cc, 'D', rho_cc, 'N2O')
+
+        # We use P_cc instead of rho_cc since CC stores P_cc and globally updating it
+        # everytime would be harder and probably not useful?
+        if self.DEBUG_VERBOSITY > 1:
+            print("***DEBUG*** [Injector.converge] T_cc = ", T_cc )
+            print("***DEBUG*** [Injector.converge] P_cc = ", P_cc)
         rho_cc = PropsSI('D', 'T', T_cc, 'P', P_cc, 'N2O')
         h_cc = PropsSI('H', 'T', T_cc, 'D', rho_cc, 'N2O')
 

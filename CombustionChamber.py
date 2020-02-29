@@ -50,13 +50,16 @@ class CombustionChamber:
         delta_r = delta_vol / (4*np.pi*self.inner_radius**2)
         self.inner_radius += delta_r # here the regression number is positive in the r-direction
 
-    def converge(self, m_dot_ox):
-        r_dot_fuel = self.n_ballistic*(m_dot_ox/(np.pi*self.inner_radius**2))**self.n_ballistic
-        m_dot_fuel = self.rho_fuel*self.grain_length*np.pi*2*self.inner_radius*r_dot_fuel
+    def converge(self, m_dot_ox, m_dot_fuel):
+        G = (m_dot_ox+m_dot_fuel)/(np.pi*self.inner_radius**2) # this G is in SI units, kg/m2 s
+        #G *= 0.000001 # fake b.s. unit conversion, replace
+        r_dot_fuel = self.a_ballistic*(G)**self.n_ballistic #units??
+        m_dot_fuel_new = self.rho_fuel*self.grain_length*np.pi*2*self.inner_radius*r_dot_fuel
         
-        OF_ratio = m_dot_ox/m_dot_fuel
+        OF_ratio = m_dot_ox/(m_dot_fuel+1e-12)
         OF_ratio_f = (m_dot_ox**(1-self.n_ballistic)*(2*self.inner_radius)**(2*self.n_ballistic-1))/(4**self.n_ballistic*np.pi**(1-self.n_ballistic)*self.n_ballistic*self.rho_fuel*self.grain_length)
-        
-        self.temperature = self.chamberTemp(OF_ratio)
 
-        return m_dot_fuel, self.temperature
+
+        #self.temperature = self.chamberTemp(OF_ratio)
+
+        return m_dot_fuel_new

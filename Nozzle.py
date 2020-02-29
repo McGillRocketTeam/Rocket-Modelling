@@ -7,13 +7,14 @@ Created on Fri Jan 17 16:20:40 2020
 import CoolProp as cp
 import math
 
+import numpy as np
 from sympy import Symbol
 from sympy.solvers import solve
 
 
 class Nozzle:
 
-    DEBUG_VERBOSITY = 0
+    DEBUG_VERBOSITY = 2
 
 
     A_throat = 1
@@ -22,12 +23,15 @@ class Nozzle:
     m_dot = 1
 
     def __init__(self):
-        self.A_throat = 0.5
+        self.A_throat = 0.006 #roughly 1in^2 in m^2
         self.A_exit = 0.1
         #self.P_cc = p
         #self.T_post_comb = T
         self.gamma = 1.4
-        self.gas_constant = 8.314*1e-3/27.4
+        univ_gas_constant = 8.314 #J/molK
+        molec_mass_products = 27.4 # g/mol
+        molec_mass_products *= 1e-3 # convert g to kg
+        self.gas_constant = univ_gas_constant / molec_mass_products
         self.thrust=0
 
     """
@@ -67,17 +71,22 @@ class Nozzle:
     #
     """
 
-    def get_mass_flow_rate(self, P_cc, T_post_comb):
+    def get_choked_flow_rate(self, P_cc, T_cc):
         m = Symbol('m')
         M_prime = 1
         A_throat = self.A_throat
         R = self.gas_constant
         gamma = self.gamma
-        sol = solve(m - A_throat * (P_cc / T_post_comb) * (gamma / (R / M_prime)) ** 0.5* (M_prime / (1 + ((gamma - 1) * M_prime ** 2) / 2) ** ((gamma + 1) / (2 * (gamma - 1)))))
-        mdot = float(sol[0])
+        exponent = (gamma+1)/(2*(gamma-1))
+        big_M_factor = pow((1+(gamma-1)/2), exponent)
+        P_throat = P_cc * pow((1+(gamma-1)/2), -(gamma/(gamma-1)))
+        T_throat = T_cc * pow((1+(gamma-1)/2), -(1/(gamma-1)))
+        mdot = A_throat * P_throat * np.sqrt(gamma/(R*T_throat)) / big_M_factor
+        #sol = solve(m - A_throat * P_cc / np.sqrt(T_cc) * np.sqrt(gamma / R) * (M_prime / (1 + ((gamma - 1)/2 * M_prime ** 2) / 2) ** ((gamma + 1) / (2 * (gamma - 1)))))
+        #mdot = float(sol[0])
 
         if self.DEBUG_VERBOSITY > 0:
-            print("[Nozzle.get_mass_flow_rate] mdot = ", mdot)
+            print("***DEBUG***[Nozzle.get_mass_flow_rate] mdot = ", mdot)
 
         return mdot
     """
@@ -98,7 +107,7 @@ class Nozzle:
         P_exit = float(sol[0])
 
         if self.DEBUG_VERBOSITY > 1:
-            print("[Nozzle.get_exit_pressure] p_exit = ", P_exit)
+            print("***DEBUG***[Nozzle.get_exit_pressure] p_exit = ", P_exit)
 
         return P_exit
 
@@ -142,9 +151,12 @@ class Nozzle:
     thrust: thrust output of nozzle [N]
     """
 
-    def converge(self, m_dot_actual, T_post_comb, P_cc):
-        m_dot_choke = self.get_mass_flow_rate(P_cc, T_post_comb)
+    # okay holy crap this needs to get changed but not rn.
+    #
+    def converge(self, T_cc, P_cc):
+        m_dot_choke = self.get_choked_flow_rate(P_cc, T_cc)
         return m_dot_choke
+
 
     def update(self, dt):
         pass
