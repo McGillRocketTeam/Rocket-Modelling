@@ -151,11 +151,22 @@ class Nozzle:
     thrust: thrust output of nozzle [N]
     """
 
-    # okay holy crap this needs to get changed but not rn.
-    #
-    def converge(self, T_cc, P_cc):
-        m_dot_choke = self.get_choked_flow_rate(P_cc, T_cc)
-        return m_dot_choke
+    def get_choke_temp(self, P_cc, m_dot_choke):
+        A_throat = self.A_throat
+        R = self.gas_constant
+        gamma = self.gamma
+        exponent = (gamma+1)/(2*(gamma-1))
+        big_M_factor = pow((1+(gamma-1)/2), exponent)
+
+        sqrt_T = (A_throat/m_dot_choke) * P_cc * big_M_factor * np.sqrt(gamma/R)
+        T_choke = np.pow(sqrt_T,2)
+        return T_choke
+
+    # Given comb. chamber pressure and mass flow, what temperature is necessary?
+    def converge(self, P_cc, m_dot_choke):
+        T_cc_choke = self.get_choke_temp(P_cc, m_dot_choke)
+        return T_cc_choke
+
 
 
     def update(self, dt):

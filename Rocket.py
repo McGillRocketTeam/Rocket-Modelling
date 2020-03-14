@@ -99,21 +99,24 @@ class Rocket:
         converge_ctr = 0
         while epsilon > epsilon_min:
 
-            # Does nothing
+            # Does nothing, just for stylistic reasons
             self.Tank.converge()
 
-            # Determine oxidiser mass flow rate based on the injector model
+            # Determine oxidiser mass flow rate based on the injector model and relevant conditions
             self.m_dot_ox = self.Injector.converge(self.Tank.T_tank, self.Tank.rho_liquid, \
                                                    self.CombustionChamber.temperature, self.CombustionChamber.pressure)
 
             # Determine fuel mass flow rate based on CC model
             self.m_dot_fuel = self.CombustionChamber.converge(self.m_dot_ox, self.m_dot_fuel)
 
-            # Determine, based on CC conditions, the choked flow rate
-            # We require that this choked rate be equal to the total flow rate
-            m_dot_choke = self.Nozzle.converge(self.CombustionChamber.temperature, self.CombustionChamber.pressure)
+            #With 2 mass flow rates, use nozzle to re-set T_CC
+            m_dot_choke = self.m_dot_fuel+self.m_dot_ox
+            T_cc_old = self.CombustionChamber.temperature
+            T_cc_new = self.Nozzle.converge(self.CombustionChamber.pressure, m_dot_choke)
 
-            epsilon = abs(self.m_dot_ox + self.m_dot_fuel - m_dot_choke)
+            #Judge convergence by change in temperature; should approach zero.
+            #Other option is to do by pressure, but Temp is more sensitive
+            epsilon = abs(T_cc_new - T_cc_old)
 
             converge_ctr += 1
             if self.DEBUG_VERBOSITY > 1:
@@ -124,5 +127,6 @@ myRocket = Rocket()
 dt = 0.001
 max_steps = 1e6
 thrust_curve = myRocket.simulate()
+
 times = np.linspace(0, endpoint=False, num=len(thrust_curve), step=dt )
 plt.plot(times, thrust_curve)
