@@ -88,8 +88,10 @@ class Injector:
         if self.DEBUG_VERBOSITY > 1:
             print("***DEBUG*** [Injector.converge] T_cc = ", T_cc )
             print("***DEBUG*** [Injector.converge] P_cc = ", P_cc)
-        rho_cc = PropsSI('D', 'T', T_cc, 'P', P_cc, 'N2O')
-        h_cc = PropsSI('H', 'T', T_cc, 'D', rho_cc, 'N2O')
+        #rho_cc = PropsSI('D', 'T', T_cc, 'P', P_cc, 'N2O')
+
+        #This assumption is suspect: assumes T and P is only for N2O
+        h_cc = PropsSI('H', 'T', T_cc, 'P', P_cc, 'N2O')
 
         # break up parts of the equations for readability
         delta_p = P_tank - P_cc
@@ -105,8 +107,8 @@ class Injector:
 
         m_dot = m_dot_inc
 
-        if self.DEBUG_VERBOSITY > 0:
-            print("***DEBUG*** [Injector.converge] m_dot = ", m_dot )
+        if self.DEBUG_VERBOSITY > 1:
+            print("***DEBUG*** [Injector.converge] m_dot = ", m_dot)
 
         return m_dot
 

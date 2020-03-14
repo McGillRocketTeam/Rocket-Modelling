@@ -47,9 +47,7 @@ class Rocket:
                 print("t = ", dt*loop_ctr)
 
             # converge is configured to return -1 in order to end simulation
-            tmp = self.converge()
-            if tmp == -1:
-                break
+            self.converge()
             self.update(dt)
 
             loop_ctr += 1
@@ -57,9 +55,9 @@ class Rocket:
             thrust_curve.append(self.Nozzle.thrust)
 
         if self.Tank.m_ox < 1e-5:
-            print("[Rocket.Simulate] Tank has emptied of oxidiser")
+            print("[Rocket.Simulate] Tank has emptied of oxidiser, we shall ")
         elif self.CombustionChamber.outer_radius - self.CombustionChamber.inner_radius < 1e-5:
-            print("[Rocket.Simulate] Fuel grain has burned away")
+            print("[Rocket.Simulate] Fuel grain has burned away, let us arise soaring from its ashes")
         elif loop_ctr > max_timesteps:
             print("[Rocket.Simulate: ERROR, minor] Simulator has exceeded max timesteps without emptying")
         return thrust_curve
@@ -95,7 +93,7 @@ class Rocket:
         # has changed, call this function to "equilibrate" the various components.  This should
         # be done after every timestep
         epsilon = 1000 # Percent change between steps
-        epsilon_min = 1e-3
+        epsilon_min = 10 # margin of error in Pascals
         converge_ctr = 0
         while epsilon > epsilon_min:
 
@@ -111,23 +109,26 @@ class Rocket:
 
             #With 2 mass flow rates, use nozzle to re-set T_CC
             m_dot_choke = self.m_dot_fuel+self.m_dot_ox
-            T_cc_old = self.CombustionChamber.temperature
-            T_cc_new = self.Nozzle.converge(self.CombustionChamber.pressure, m_dot_choke)
-            self.CombustionChamber.temperature = T_cc_new
+            P_cc_old = self.CombustionChamber.pressure
+            P_cc_new = self.Nozzle.converge(self.CombustionChamber.temperature, m_dot_choke)
+            self.CombustionChamber.pressure = P_cc_new
+
 
             #Judge convergence by change in temperature; should approach zero.
             #Other option is to do by pressure, but Temp is more sensitive
-            epsilon = abs(T_cc_new - T_cc_old)
+            epsilon = abs(P_cc_new - P_cc_old)
 
             converge_ctr += 1
             if self.DEBUG_VERBOSITY > 1:
                 print("***DEBUG*** [Rocket.converge] Steps to convergence =  ", converge_ctr)
                 print("***DEBUG*** [Rocket.converge] Convergence epsilon =  ", epsilon)
 
+        self.Nozzle.set_thrust_from_nozzle(m_dot_choke, self.CombustionChamber.temperature, self.CombustionChamber.pressure)
+
 myRocket = Rocket()
-dt = 0.001
+dt = 0.000001
 max_steps = 1e6
-thrust_curve = myRocket.simulate()
+thrust_curve = myRocket.simulate(dt,)
 
 times = np.linspace(0, endpoint=False, num=len(thrust_curve), step=dt )
 plt.plot(times, thrust_curve)

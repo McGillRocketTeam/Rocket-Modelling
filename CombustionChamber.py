@@ -17,7 +17,7 @@ See Cantwell's chapter on hybrid rocket engines for more info
 import numpy as np
 class CombustionChamber:
 
-    DEBUG_VERBOSITY = 0
+    DEBUG_VERBOSITY = 1
 
     outer_radius = 1
     inner_radius = 1
@@ -31,8 +31,8 @@ class CombustionChamber:
     n_ballistic = 0.62
 
     def __init__(self):
-        self.outer_radius = .0917
-        self.inner_radius = .079
+        self.outer_radius = .079
+        self.inner_radius = .058
         self.grain_length = 0.762
         self.pressure = 2.76e6
         self.temperature = 3000
@@ -44,11 +44,15 @@ class CombustionChamber:
         return self.temperature
 
     def update(self, dt, m_dot_fuel):
+        old_inner_radius = self.inner_radius
+
         m_lost = m_dot_fuel*dt
         self.m_fuel -= m_lost
-        delta_vol = m_lost*self.rho_fuel
-        delta_r = delta_vol / (4*np.pi*self.inner_radius**2)
-        self.inner_radius += delta_r # here the regression number is positive in the r-direction
+        delta_vol = -m_lost*self.rho_fuel
+        new_inner_radius_squared = (old_inner_radius**2) + delta_vol/(self.grain_length * np.pi)
+        self.inner_radius = np.sqrt(new_inner_radius_squared)
+        if(self.DEBUG_VERBOSITY > 0):
+            print("[CombustionChamber.update] Fuel Grain inner radius:", self.inner_radius)
 
     def converge(self, m_dot_ox, m_dot_fuel):
         G = (m_dot_ox+m_dot_fuel)/(np.pi*self.inner_radius**2) # this G is in SI units, kg/m2 s

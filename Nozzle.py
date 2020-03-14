@@ -23,8 +23,8 @@ class Nozzle:
     m_dot = 1
 
     def __init__(self):
-        self.A_throat = 0.006 #roughly 1in^2 in m^2
-        self.A_exit = 0.1
+        self.A_throat = 0.0006 #roughly 1in^2 in m^2
+        self.A_exit = 0.002 #roughly 3in^2, but in m^2
         #self.P_cc = p
         #self.T_post_comb = T
         self.gamma = 1.4
@@ -33,6 +33,7 @@ class Nozzle:
         molec_mass_products *= 1e-3 # convert g to kg
         self.gas_constant = univ_gas_constant / molec_mass_products
         self.thrust=0
+        self.p_amb = 101325
 
     """
     4 methods below are based on Prof. Andrew Higgins' Fluids 2 notes
@@ -49,11 +50,11 @@ class Nozzle:
     """
 
     def get_outlet_mach(self):
-        m = Symbol('M')
+        M = Symbol('M')
         A_throat = self.A_throat
         A_exit = self.A_exit
         gamma = self.gamma
-        sol = solve((A_exit / A_throat) - (1 / m) * ((2 / (gamma + 1)) * ((1 + (gamma - 1) / 2) * m ** 2)) ** ((gamma + 1) / (2 * (gamma - 1))), m)
+        sol = solve((A_exit / A_throat) - (1 / M) * ((2 / (gamma + 1)) * ((1 + (gamma - 1) / 2) * M ** 2)) ** ((gamma + 1) / (2 * (gamma - 1))), M)
         M_out = float(sol[0])
         return M_out
 
@@ -111,6 +112,12 @@ class Nozzle:
 
         return P_exit
 
+
+    def get_ambient_pressure(self):
+        # for now, simply returns atmospheric pressure
+        # Later, could implement atmosphere coupling w height
+        return self.p_amb
+
     """
     get_thrust_from_nozzle: determines the thrust output from nozzle based on parameters obtained above
     #
@@ -125,17 +132,26 @@ class Nozzle:
     thrust: thrust output [N]
     """
 
-    def get_thrust_from_nozzle(self, m_dot, T_post_comb, P_exit, P_cc, P_amb):
+    def set_thrust_from_nozzle(self, m_dot, T_cc, P_cc):
+        #static method which sets self.thrust according to the conditions shown
         R = self.gas_constant
         gamma = self.gamma
         A_exit = self.A_exit
-        thrust_from_nozzle = m_dot *(((2 * gamma) / (gamma - 1)) * R * T_post_comb * (1 - (P_exit / P_cc) ** ((gamma - 1) / gamma)))**0.5 + (P_exit - P_amb) * A_exit
-        self.thrust = thrust_from_nozzle
+        M_exit = self.get_outlet_mach()
+        T_exit = T_cc * (1+(gamma-1)/2 * M_exit**2)**(-1)
+        exhaust_vel = M_exit * np.sqrt(gamma*R*T_exit)
+        momentum_thrust = m_dot*exhaust_vel
+
+        p_amb = self.get_ambient_pressure()
+        p_exit = (1+(gamma-1)/2 * M_exit**2)**(-gamma/(gamma-1))
+        pressure_thrust = (p_exit - p_amb) * A_exit
+
+        total_thrust = pressure_thrust + momentum_thrust
+        self.thrust = total_thrust
 
         if self.DEBUG_VERBOSITY > 0:
-            print("***DEBUG*** [Nozzle.get_thrust_from_nozzle] Thrust = ", thrust_from_nozzle)
+            print("***DEBUG*** [Nozzle.set_thrust_from_nozzle] Thrust = ", self.thrust)
 
-        return thrust_from_nozzle
 
     """
     Determines the thrust output based on following input properties:
@@ -151,21 +167,19 @@ class Nozzle:
     thrust: thrust output of nozzle [N]
     """
 
-    def get_choke_temp(self, P_cc, m_dot_choke):
+    def get_choke_pressure(self, T_cc, m_dot_choke):
         A_throat = self.A_throat
         R = self.gas_constant
         gamma = self.gamma
         exponent = -(gamma+1)/(2*(gamma-1))
         big_M_factor = pow((1+(gamma-1)/2), exponent)
+        P_choke = m_dot_choke/A_throat * np.sqrt(T_cc * R/gamma) / big_M_factor
+        return P_choke
 
-        sqrt_T = (A_throat/m_dot_choke) * P_cc * big_M_factor * np.sqrt(gamma/R)
-        T_choke = pow(sqrt_T, 2)
-        return T_choke
-
-    # Given comb. chamber pressure and mass flow, what temperature is necessary?
-    def converge(self, P_cc, m_dot_choke):
-        T_cc_choke = self.get_choke_temp(P_cc, m_dot_choke)
-        return T_cc_choke
+    # Given comb. chamber Temperature and mass flow, what pressure is necessary?
+    def converge(self, T_cc, m_dot_choke):
+        P_cc_choke = self.get_choke_pressure(T_cc, m_dot_choke)
+        return P_cc_choke
 
 
 

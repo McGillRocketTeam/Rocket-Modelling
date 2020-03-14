@@ -46,7 +46,7 @@ class Tank:
         # Check to ensure phase is twophase, otherwise end simulation
         current_phase_index = PropsSI("Phase", "T", self.T_tank, "D", 1/self.v_specific_mix, "N2O")
         twophase_phase_index = get_phase_index("phase_twophase")
-        if current_phase_index == twophase_phase_index:
+        if (abs(current_phase_index - twophase_phase_index) < 0.1):
 
             # calculate specific enthalpy of liquid phase
             h_liq = PropsSI("H", "T", self.T_tank, "Q", 0, 'N2O')
@@ -75,4 +75,3 @@ class Tank:
             self.rho_liquid = -1
             # print(PhaseSI("T", self.T_tank, "D", 1 / self.v_specific_mix, "N2O"))
 
-        return self.T_tank, self.rho_liquid
