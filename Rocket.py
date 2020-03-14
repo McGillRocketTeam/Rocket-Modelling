@@ -70,7 +70,7 @@ class Rocket:
 
         # This assumes combustion is already occurring at steady state and
         # that m_dot_ox is determined by the choke
-        self.m_dot_ox = self.Nozzle.get_mass_flow_rate(self.CombustionChamber.pressure, self.CombustionChamber.temperature)
+        self.m_dot_ox = self.Nozzle.get_choked_flow_rate(self.CombustionChamber.pressure, self.CombustionChamber.temperature)
 
 
         #self.T_tank = self.Tank.T_tank
@@ -113,6 +113,7 @@ class Rocket:
             m_dot_choke = self.m_dot_fuel+self.m_dot_ox
             T_cc_old = self.CombustionChamber.temperature
             T_cc_new = self.Nozzle.converge(self.CombustionChamber.pressure, m_dot_choke)
+            self.CombustionChamber.temperature = T_cc_new
 
             #Judge convergence by change in temperature; should approach zero.
             #Other option is to do by pressure, but Temp is more sensitive

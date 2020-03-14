@@ -79,9 +79,9 @@ class Nozzle:
         gamma = self.gamma
         exponent = (gamma+1)/(2*(gamma-1))
         big_M_factor = pow((1+(gamma-1)/2), exponent)
-        P_throat = P_cc * pow((1+(gamma-1)/2), -(gamma/(gamma-1)))
-        T_throat = T_cc * pow((1+(gamma-1)/2), -(1/(gamma-1)))
-        mdot = A_throat * P_throat * np.sqrt(gamma/(R*T_throat)) / big_M_factor
+        #P_throat = P_cc * pow((1+(gamma-1)/2), -(gamma/(gamma-1)))
+        #T_throat = T_cc * pow((1+(gamma-1)/2), -(1/(gamma-1)))
+        mdot = A_throat * P_cc * np.sqrt(gamma/(R*T_cc)) / big_M_factor
         #sol = solve(m - A_throat * P_cc / np.sqrt(T_cc) * np.sqrt(gamma / R) * (M_prime / (1 + ((gamma - 1)/2 * M_prime ** 2) / 2) ** ((gamma + 1) / (2 * (gamma - 1)))))
         #mdot = float(sol[0])
 
@@ -155,11 +155,11 @@ class Nozzle:
         A_throat = self.A_throat
         R = self.gas_constant
         gamma = self.gamma
-        exponent = (gamma+1)/(2*(gamma-1))
+        exponent = -(gamma+1)/(2*(gamma-1))
         big_M_factor = pow((1+(gamma-1)/2), exponent)
 
         sqrt_T = (A_throat/m_dot_choke) * P_cc * big_M_factor * np.sqrt(gamma/R)
-        T_choke = np.pow(sqrt_T,2)
+        T_choke = pow(sqrt_T, 2)
         return T_choke
 
     # Given comb. chamber pressure and mass flow, what temperature is necessary?
